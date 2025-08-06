@@ -605,14 +605,15 @@
                         enableFallback: false
                     };
                 } else if (this.currentService === 'midjourney') {
-                    url = 'https://api.kie.ai/api/v1/mj/generate';
+                    // Try the generic generate endpoint like VEO3
+                    url = 'https://api.kie.ai/api/v1/generate';
                     body = {
-                        taskType: "mj_txt2img",
+                        service: "midjourney",
                         prompt: prompt,
+                        taskType: "mj_txt2img",
                         speed: document.getElementById('mjSpeed')?.value || "relaxed",
                         aspectRatio: document.getElementById('mjAspectRatio')?.value || "16:9",
-                        version: document.getElementById('mjVersion')?.value || "7",
-                        enableFallback: false
+                        version: document.getElementById('mjVersion')?.value || "7"
                     };
                 } else if (this.currentService === 'flux') {
                     url = 'https://api.kie.ai/api/v1/flux/generate';
@@ -711,7 +712,8 @@
                 } else if (this.currentService === '4o-image') {
                     endpoint = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'midjourney') {
-                    endpoint = `https://api.kie.ai/api/v1/mj/record-info?taskId=${taskId}`;
+                    // Try generic status endpoint first
+                    endpoint = `https://api.kie.ai/api/v1/task-status?taskId=${taskId}`;
                 } else if (this.currentService === 'flux') {
                     endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'runway') {
