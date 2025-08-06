@@ -402,7 +402,16 @@
             
             <!-- Other services -->
             <div class="service-specific" data-service="flux">
-                <p style="color: #666; font-style: italic;">Flux generation with default settings</p>
+                <div class="form-group">
+                    <label for="fluxAspectRatio">Aspect Ratio:</label>
+                    <select id="fluxAspectRatio">
+                        <option value="16:9">16:9 (Landscape)</option>
+                        <option value="1:1">1:1 (Square)</option>
+                        <option value="9:16">9:16 (Portrait)</option>
+                        <option value="4:3">4:3 (Standard)</option>
+                    </select>
+                </div>
+                <p style="color: #666; font-style: italic; margin-top: 10px;">Flux Kontext Pro - Fast high-quality image generation</p>
             </div>
             
             <div class="service-specific" data-service="runway">
@@ -633,10 +642,11 @@
                         weirdness: 0       // Keep weirdness at 0 for now
                     };
                 } else if (this.currentService === 'flux') {
-                    url = 'https://api.kie.ai/api/v1/flux/generate';
+                    url = 'https://api.kie.ai/api/v1/flux/kontext/generate';
                     body = {
                         prompt: prompt,
-                        enableFallback: false
+                        aspectRatio: document.getElementById('fluxAspectRatio')?.value || "16:9",
+                        model: "flux-kontext-pro"
                     };
                 } else if (this.currentService === 'runway') {
                     url = 'https://api.kie.ai/api/v1/runway/generate';
@@ -692,6 +702,9 @@
                                 isComplete = result.resultInfoJson && 
                                             result.resultInfoJson.resultUrls && 
                                             result.resultInfoJson.resultUrls.length > 0;
+                            } else if (this.currentService === 'flux') {
+                                // Flux completion check - single image URL
+                                isComplete = result.response && result.response.resultImageUrl;
                             } else {
                                 // VEO3 and other services completion check
                                 isComplete = result.response && 
@@ -795,6 +808,11 @@
                     // Midjourney uses resultInfoJson.resultUrls format
                     if (result.resultInfoJson && result.resultInfoJson.resultUrls) {
                         resultUrls = result.resultInfoJson.resultUrls.map(urlInfo => urlInfo.resultUrl);
+                    }
+                } else if (this.currentService === 'flux') {
+                    // Flux uses response.resultImageUrl format (single image)
+                    if (result.response && result.response.resultImageUrl) {
+                        resultUrls = [result.response.resultImageUrl];
                     }
                 } else {
                     // VEO3 and other services use response.resultUrls format
