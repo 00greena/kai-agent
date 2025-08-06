@@ -667,15 +667,24 @@
                     };
                 } else if (this.currentService === 'runway') {
                     url = 'https://api.kie.ai/api/v1/runway/generate';
+                    
+                    // Debug: log the duration value
+                    const durationElement = document.getElementById('runwayDuration');
+                    const durationValue = durationElement ? parseInt(durationElement.value) : 5;
+                    console.log('Runway duration element:', durationElement);
+                    console.log('Runway duration value:', durationValue);
+                    
                     body = {
                         prompt: prompt,
                         aspectRatio: document.getElementById('runwayAspectRatio')?.value || "16:9",
-                        duration: parseInt(document.getElementById('runwayDuration')?.value) || 5,
+                        duration: durationValue,
                         waterMark: "kie.ai",
                         expandPrompt: true
                         // imageUrl is optional for text-to-video
                         // callBackUrl is optional for polling-based checking
                     };
+                    
+                    console.log('Runway request body:', JSON.stringify(body, null, 2));
                 } else if (this.currentService === 'suno') {
                     url = 'https://api.kie.ai/api/v1/suno/generate';
                     body = {
