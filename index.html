@@ -382,14 +382,21 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="mjVersion">Model Version:</label>
-                    <select id="mjVersion">
-                        <option value="7">Version 7 (Latest)</option>
-                        <option value="6.1">Version 6.1</option>
-                        <option value="6">Version 6</option>
-                        <option value="niji6">Niji 6 (Anime)</option>
-                    </select>
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="mjVersion">Model Version:</label>
+                        <select id="mjVersion">
+                            <option value="7">Version 7 (Latest)</option>
+                            <option value="6.1">Version 6.1</option>
+                            <option value="6">Version 6</option>
+                            <option value="niji6">Niji 6 (Anime)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mjStylization">Stylization (0-1000):</label>
+                        <input type="range" id="mjStylization" min="0" max="1000" value="100" style="width: 100%;">
+                        <small style="color: #666;">Current: <span id="stylizationValue">100</span></small>
+                    </div>
                 </div>
             </div>
             
@@ -473,6 +480,15 @@
                     console.log('API key changed');
                     this.saveApiKey();
                 });
+
+                // Update stylization value display
+                const stylizationSlider = document.getElementById('mjStylization');
+                const stylizationValue = document.getElementById('stylizationValue');
+                if (stylizationSlider && stylizationValue) {
+                    stylizationSlider.addEventListener('input', (e) => {
+                        stylizationValue.textContent = e.target.value;
+                    });
+                }
             }            switchService(service) {
                 this.currentService = service;
                 
@@ -605,15 +621,16 @@
                         enableFallback: false
                     };
                 } else if (this.currentService === 'midjourney') {
-                    // Try the generic generate endpoint like VEO3
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    // Use the correct Midjourney endpoint with required parameters
+                    url = 'https://api.kie.ai/api/v1/mj/generate';
                     body = {
-                        service: "midjourney",
-                        prompt: prompt,
                         taskType: "mj_txt2img",
+                        prompt: prompt,
                         speed: document.getElementById('mjSpeed')?.value || "relaxed",
                         aspectRatio: document.getElementById('mjAspectRatio')?.value || "16:9",
-                        version: document.getElementById('mjVersion')?.value || "7"
+                        version: document.getElementById('mjVersion')?.value || "7",
+                        stylization: parseInt(document.getElementById('mjStylization')?.value) || 100,
+                        weirdness: 0       // Keep weirdness at 0 for now
                     };
                 } else if (this.currentService === 'flux') {
                     url = 'https://api.kie.ai/api/v1/flux/generate';
@@ -712,8 +729,7 @@
                 } else if (this.currentService === '4o-image') {
                     endpoint = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'midjourney') {
-                    // Try generic status endpoint first
-                    endpoint = `https://api.kie.ai/api/v1/task-status?taskId=${taskId}`;
+                    endpoint = `https://api.kie.ai/api/v1/mj/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'flux') {
                     endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'runway') {
