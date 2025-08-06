@@ -772,7 +772,8 @@
                 } else if (this.currentService === 'midjourney') {
                     endpoint = `https://api.kie.ai/api/v1/mj/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'flux') {
-                    endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
+                    // Try the flux-specific status endpoint
+                    endpoint = `https://api.kie.ai/api/v1/flux/kontext/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'runway') {
                     endpoint = `https://api.kie.ai/api/v1/runway/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'suno') {
