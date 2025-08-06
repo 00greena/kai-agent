@@ -680,18 +680,19 @@
                         // Check for completion based on actual API response structure
                         let isComplete = false;
                         
-                        if (this.currentService === 'midjourney') {
-                            // Midjourney completion check
-                            isComplete = result.successFlag === 1 && 
-                                        result.resultInfoJson && 
-                                        result.resultInfoJson.resultUrls && 
-                                        result.resultInfoJson.resultUrls.length > 0;
-                        } else {
-                            // VEO3 and other services completion check
-                            isComplete = result.successFlag === 1 && 
-                                        result.response && 
-                                        result.response.resultUrls && 
-                                        result.response.resultUrls.length > 0;
+                        if (result.successFlag === 1) {
+                            // Generation is complete, now check for results
+                            if (this.currentService === 'midjourney') {
+                                // Midjourney completion check
+                                isComplete = result.resultInfoJson && 
+                                            result.resultInfoJson.resultUrls && 
+                                            result.resultInfoJson.resultUrls.length > 0;
+                            } else {
+                                // VEO3 and other services completion check
+                                isComplete = result.response && 
+                                            result.response.resultUrls && 
+                                            result.response.resultUrls.length > 0;
+                            }
                         }
                         
                         if (isComplete) {
@@ -699,6 +700,11 @@
                             console.log('Generation completed! Clearing interval.');
                             clearInterval(this.checkInterval);
                             this.handleSuccess(result);
+                            
+                        } else if (result.successFlag === 1) {
+                            // Complete but no URLs yet - give it a moment
+                            console.log('Generation marked complete but waiting for result URLs...');
+                            this.showStatus('Generation complete, processing results...', 'loading');
                             
                         } else if (result.successFlag === 2 || result.successFlag === 3) {
                             // Based on API docs: 2 = Failed, 3 = Generation Failed
@@ -710,6 +716,12 @@
                             
                         } else if (result.successFlag === 0) {
                             console.log('Still generating... SuccessFlag: 0');
+                            // Update status with more detail if available
+                            if (result.completeTime) {
+                                this.showStatus('Finalizing generation...', 'loading');
+                            } else {
+                                this.showStatus('Generating content...', 'loading');
+                            }
                         } else {
                             console.log('Unknown status... SuccessFlag:', result.successFlag);
                         }
