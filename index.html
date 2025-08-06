@@ -557,46 +557,48 @@
             async startGeneration(apiKey, prompt) {
                 let url, body;
                 
-                // Use the exact same format as the working KEI MCP tool
+                // Use the official KEI.ai API format from documentation
                 if (this.currentService === 'veo3') {
-                    // Try the generic generate endpoint that the MCP tool likely uses
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/veo/generate';
                     body = {
-                        service: 'veo3',
                         prompt: prompt,
-                        aspectRatio: document.getElementById('veo3AspectRatio').value || '16:9'
+                        model: "veo3",
+                        aspectRatio: document.getElementById('veo3AspectRatio').value,
+                        enableFallback: false,
+                        watermark: "KEI-Generator"
+                        // Note: callBackUrl is optional for polling-based checking
                     };
                 } else if (this.currentService === '4o-image') {
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
                     body = {
-                        service: '4o-image', 
                         prompt: prompt,
-                        size: document.getElementById('imageSize').value || '1:1',
-                        nVariants: parseInt(document.getElementById('imageVariants').value) || 1
+                        size: document.getElementById('imageSize').value,
+                        nVariants: parseInt(document.getElementById('imageVariants').value),
+                        enableFallback: false
                     };
                 } else if (this.currentService === 'midjourney') {
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/midjourney/generate';
                     body = {
-                        service: 'midjourney',
-                        prompt: prompt
+                        prompt: prompt,
+                        enableFallback: false
                     };
                 } else if (this.currentService === 'flux') {
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/flux/generate';
                     body = {
-                        service: 'flux',
-                        prompt: prompt
+                        prompt: prompt,
+                        enableFallback: false
                     };
                 } else if (this.currentService === 'runway') {
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/runway/generate';
                     body = {
-                        service: 'runway',
-                        prompt: prompt
+                        prompt: prompt,
+                        enableFallback: false
                     };
                 } else if (this.currentService === 'suno') {
-                    url = 'https://api.kie.ai/api/v1/generate';
+                    url = 'https://api.kie.ai/api/v1/suno/generate';
                     body = {
-                        service: 'suno',
-                        prompt: prompt
+                        prompt: prompt,
+                        enableFallback: false
                     };
                 } else {
                     throw new Error(`Unsupported service: ${this.currentService}`);
@@ -636,8 +638,24 @@
             }
 
             async checkStatus(apiKey, taskId) {
-                // Use generic status endpoint that should work for all services
-                const endpoint = `https://api.kie.ai/api/v1/task/${taskId}`;
+                let endpoint;
+                
+                // Use the official record-info endpoints
+                if (this.currentService === 'veo3') {
+                    endpoint = `https://api.kie.ai/api/v1/veo/record-info?taskId=${taskId}`;
+                } else if (this.currentService === '4o-image') {
+                    endpoint = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'midjourney') {
+                    endpoint = `https://api.kie.ai/api/v1/midjourney/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'flux') {
+                    endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'runway') {
+                    endpoint = `https://api.kie.ai/api/v1/runway/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'suno') {
+                    endpoint = `https://api.kie.ai/api/v1/suno/record-info?taskId=${taskId}`;
+                } else {
+                    throw new Error(`Unsupported service: ${this.currentService}`);
+                }
 
                 const data = await this.makeApiCall('GET', endpoint, null, apiKey);
                 console.log('Status check response:', data);
