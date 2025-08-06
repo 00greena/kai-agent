@@ -561,6 +561,7 @@
                 if (this.currentService === 'veo3') {
                     url = 'https://api.kie.ai/api/v1/veo/generate';
                     body = {
+                        model: 'veo3',
                         prompt: prompt,
                         aspectRatio: document.getElementById('veo3AspectRatio').value,
                         enableFallback: false,
