@@ -361,11 +361,39 @@
                 </div>
             </div>
 
-            <!-- Other services -->
+            <!-- Midjourney specific options -->
             <div class="service-specific" data-service="midjourney">
-                <p style="color: #666; font-style: italic;">Midjourney generation with default settings</p>
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="mjAspectRatio">Aspect Ratio:</label>
+                        <select id="mjAspectRatio">
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="1:1">1:1 (Square)</option>
+                            <option value="9:16">9:16 (Portrait)</option>
+                            <option value="4:3">4:3 (Standard)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mjSpeed">Generation Speed:</label>
+                        <select id="mjSpeed">
+                            <option value="relaxed">Relaxed (Free)</option>
+                            <option value="fast">Fast</option>
+                            <option value="turbo">Turbo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mjVersion">Model Version:</label>
+                    <select id="mjVersion">
+                        <option value="7">Version 7 (Latest)</option>
+                        <option value="6.1">Version 6.1</option>
+                        <option value="6">Version 6</option>
+                        <option value="niji6">Niji 6 (Anime)</option>
+                    </select>
+                </div>
             </div>
             
+            <!-- Other services -->
             <div class="service-specific" data-service="flux">
                 <p style="color: #666; font-style: italic;">Flux generation with default settings</p>
             </div>
@@ -577,9 +605,13 @@
                         enableFallback: false
                     };
                 } else if (this.currentService === 'midjourney') {
-                    url = 'https://api.kie.ai/api/v1/midjourney/generate';
+                    url = 'https://api.kie.ai/api/v1/mj/generate';
                     body = {
+                        taskType: "mj_txt2img",
                         prompt: prompt,
+                        speed: document.getElementById('mjSpeed')?.value || "relaxed",
+                        aspectRatio: document.getElementById('mjAspectRatio')?.value || "16:9",
+                        version: document.getElementById('mjVersion')?.value || "7",
                         enableFallback: false
                     };
                 } else if (this.currentService === 'flux') {
@@ -628,10 +660,23 @@
                         console.log('Has resultUrls:', result.response && result.response.resultUrls);
                         
                         // Check for completion based on actual API response structure
-                        if (result.successFlag === 1 && 
-                            result.response && 
-                            result.response.resultUrls && 
-                            result.response.resultUrls.length > 0) {
+                        let isComplete = false;
+                        
+                        if (this.currentService === 'midjourney') {
+                            // Midjourney completion check
+                            isComplete = result.successFlag === 1 && 
+                                        result.resultInfoJson && 
+                                        result.resultInfoJson.resultUrls && 
+                                        result.resultInfoJson.resultUrls.length > 0;
+                        } else {
+                            // VEO3 and other services completion check
+                            isComplete = result.successFlag === 1 && 
+                                        result.response && 
+                                        result.response.resultUrls && 
+                                        result.response.resultUrls.length > 0;
+                        }
+                        
+                        if (isComplete) {
                             
                             console.log('Generation completed! Clearing interval.');
                             clearInterval(this.checkInterval);
@@ -666,7 +711,7 @@
                 } else if (this.currentService === '4o-image') {
                     endpoint = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'midjourney') {
-                    endpoint = `https://api.kie.ai/api/v1/midjourney/record-info?taskId=${taskId}`;
+                    endpoint = `https://api.kie.ai/api/v1/mj/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'flux') {
                     endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
                 } else if (this.currentService === 'runway') {
@@ -697,7 +742,18 @@
                 this.hideProgress();
                 document.getElementById('generateBtn').disabled = false;
 
-                const resultUrls = result.response ? result.response.resultUrls : result.resultUrls || [];
+                let resultUrls = [];
+                
+                // Handle different response formats for different services
+                if (this.currentService === 'midjourney') {
+                    // Midjourney uses resultInfoJson.resultUrls format
+                    if (result.resultInfoJson && result.resultInfoJson.resultUrls) {
+                        resultUrls = result.resultInfoJson.resultUrls.map(urlInfo => urlInfo.resultUrl);
+                    }
+                } else {
+                    // VEO3 and other services use response.resultUrls format
+                    resultUrls = result.response ? result.response.resultUrls : result.resultUrls || [];
+                }
                 
                 if (resultUrls && resultUrls.length > 0) {
                     this.showResult(resultUrls);
