@@ -622,17 +622,38 @@
                     try {
                         const result = await this.checkStatus(apiKey, taskId);
                         
-                        if (result.status === 'SUCCESS' || result.successFlag === 1) {
+                        // Log the full result to see what we're getting
+                        console.log('Full status result:', JSON.stringify(result, null, 2));
+                        console.log('Result status:', result.status);
+                        console.log('Result successFlag:', result.successFlag);
+                        
+                        // Check for various completion indicators
+                        if (result.status === 'SUCCESS' || 
+                            result.successFlag === 1 || 
+                            result.status === 'COMPLETED' ||
+                            (result.response && result.response.resultUrls && result.response.resultUrls.length > 0)) {
+                            
+                            console.log('Generation completed! Clearing interval.');
                             clearInterval(this.checkInterval);
                             this.handleSuccess(result);
-                        } else if (result.status === 'GENERATE_FAILED' || result.status === 'CREATE_TASK_FAILED') {
+                            
+                        } else if (result.status === 'GENERATE_FAILED' || 
+                                 result.status === 'CREATE_TASK_FAILED' ||
+                                 result.status === 'FAILED' ||
+                                 result.successFlag === 0) {
+                            
+                            console.log('Generation failed! Clearing interval.');
                             clearInterval(this.checkInterval);
                             this.showStatus(`Generation failed: ${result.errorMessage || 'Unknown error'}`, 'error');
                             this.hideProgress();
                             document.getElementById('generateBtn').disabled = false;
+                            
+                        } else {
+                            console.log('Still generating... Status:', result.status || 'unknown');
                         }
                     } catch (error) {
                         console.error('Error checking status:', error);
+                        // Don't clear interval on temporary errors, just log them
                     }
                 }, 3000);
             }
