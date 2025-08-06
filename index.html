@@ -603,7 +603,16 @@
                 }
 
                 const data = await this.makeApiCall('POST', url, body, apiKey);
-                return data.data.taskId;
+                console.log('API Response:', data);
+                
+                // Handle different response formats
+                if (data && data.data && data.data.taskId) {
+                    return data.data.taskId;
+                } else if (data && data.taskId) {
+                    return data.taskId;
+                } else {
+                    throw new Error(`No taskId found in response: ${JSON.stringify(data)}`);
+                }
             }            async pollForCompletion(apiKey, taskId) {
                 this.showStatus('Generating content...', 'loading');
                 
@@ -647,12 +656,20 @@
                 }
 
                 const data = await this.makeApiCall('GET', endpoint, null, apiKey);
+                console.log('Status check response:', data);
                 
-                if (data.code !== 200) {
+                if (data && data.code !== undefined && data.code !== 200) {
                     throw new Error(data.msg || 'Status check failed');
                 }
                 
-                return data.data;
+                // Handle different response formats
+                if (data && data.data) {
+                    return data.data;
+                } else if (data) {
+                    return data;
+                } else {
+                    throw new Error('No data in status response');
+                }
             }            handleSuccess(result) {
                 this.showStatus('Generation completed successfully!', 'success');
                 this.hideProgress();
