@@ -417,31 +417,22 @@
             <div class="service-specific" data-service="runway">
                 <div class="grid">
                     <div class="form-group">
-                        <label for="runwayQuality">Video Quality:</label>
-                        <select id="runwayQuality">
-                            <option value="horizontal_1080p">1080p Horizontal</option>
-                            <option value="horizontal_720p">720p Horizontal</option>
-                            <option value="vertical_1080p">1080p Vertical</option>
-                            <option value="vertical_720p">720p Vertical</option>
+                        <label for="runwayModel">Model & Duration:</label>
+                        <select id="runwayModel">
+                            <option value="runway-duration-5-generate">5 seconds</option>
+                            <option value="runway-duration-10-generate">10 seconds</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="runwayDuration">Duration:</label>
-                        <select id="runwayDuration">
-                            <option value="5">5 seconds</option>
-                            <option value="10">10 seconds</option>
-                            <option value="15">15 seconds</option>
+                        <label for="runwayAspectRatio">Aspect Ratio:</label>
+                        <select id="runwayAspectRatio">
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="9:16">9:16 (Portrait)</option>
+                            <option value="1:1">1:1 (Square)</option>
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="runwayAspectRatio">Aspect Ratio:</label>
-                    <select id="runwayAspectRatio">
-                        <option value="16:9">16:9 (Landscape)</option>
-                        <option value="9:16">9:16 (Portrait)</option>
-                        <option value="1:1">1:1 (Square)</option>
-                    </select>
-                </div>
+                <p style="color: #666; font-style: italic; margin-top: 10px;">Runway - AI video generation from text prompts</p>
             </div>
             
             <div class="service-specific" data-service="suno">
@@ -678,10 +669,12 @@
                     url = 'https://api.kie.ai/api/v1/runway/generate';
                     body = {
                         prompt: prompt,
-                        quality: document.getElementById('runwayQuality')?.value || "horizontal_1080p",
                         aspectRatio: document.getElementById('runwayAspectRatio')?.value || "16:9",
-                        duration: parseInt(document.getElementById('runwayDuration')?.value) || 5,
-                        enableFallback: false
+                        model: document.getElementById('runwayModel')?.value || "runway-duration-5-generate",
+                        waterMark: "kie.ai",
+                        expandPrompt: true
+                        // imageUrl is optional for text-to-video
+                        // callBackUrl is optional for polling-based checking
                     };
                 } else if (this.currentService === 'suno') {
                     url = 'https://api.kie.ai/api/v1/suno/generate';
@@ -724,8 +717,13 @@
                         // Check for completion based on actual API response structure
                         let isComplete = false;
                         
-                        if (result.successFlag === 1) {
-                            // Generation is complete, now check for results
+                        if (this.currentService === 'runway') {
+                            // Runway uses state: "success" and different structure
+                            isComplete = result.state === "success" && 
+                                        result.videoInfo && 
+                                        result.videoInfo.videoUrl;
+                        } else if (result.successFlag === 1) {
+                            // Other services use successFlag
                             if (this.currentService === 'midjourney') {
                                 // Midjourney completion check
                                 isComplete = result.resultInfoJson && 
@@ -843,6 +841,11 @@
                     // Flux uses response.resultImageUrl format (single image)
                     if (result.response && result.response.resultImageUrl) {
                         resultUrls = [result.response.resultImageUrl];
+                    }
+                } else if (this.currentService === 'runway') {
+                    // Runway uses videoInfo.videoUrl format (single video)
+                    if (result.videoInfo && result.videoInfo.videoUrl) {
+                        resultUrls = [result.videoInfo.videoUrl];
                     }
                 } else {
                     // VEO3 and other services use response.resultUrls format
