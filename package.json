@@ -1,0 +1,27 @@
+{
+  "name": "kei-ai-generator",
+  "version": "1.0.0",
+  "description": "KEI.ai Content Generator - Create videos, images, and music using AI",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static build complete'",
+    "start": "vercel dev"
+  },
+  "keywords": [
+    "ai",
+    "video-generation",
+    "image-generation",
+    "veo3",
+    "midjourney",
+    "suno"
+  ],
+  "author": "Yanek",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  }
+}

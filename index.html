@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KEI.ai Content Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .service-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab:hover:not(.active) {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .service-specific {
+            display: none;
+        }
+
+        .service-specific.active {
+            display: block;
+        }
+
+        .api-key-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+
+        .history {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .cors-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .cors-warning h4 {
+            margin-bottom: 10px;
+        }
+
+        .cors-warning ul {
+            margin-left: 20px;
+        }
+
+        .cors-warning li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .service-tabs {
+                justify-content: center;
+            }
+            
+            .tab {
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>    <div class="container">
+        <h1>🎨 KEI.ai Generator</h1>
+        
+        <div class="cors-warning">
+            <h4>⚠️ CORS Notice</h4>
+            <p>This app may not work when opened directly in browser due to CORS restrictions. For best results:</p>
+            <ul>
+                <li><strong>Deploy to Netlify/Vercel</strong> (recommended)</li>
+                <li><strong>Run a local server:</strong> <code>python -m http.server 8000</code></li>
+                <li><strong>Use CORS browser extension</strong> for testing</li>
+            </ul>
+        </div>
+        
+        <div class="api-key-section">
+            <label for="apiKey">API Key:</label>
+            <input type="password" id="apiKey" placeholder="Enter your KEI.ai API key" value="">
+            <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                Get your API key from <a href="https://kie.ai/api-key" target="_blank">kie.ai/api-key</a>
+            </small>
+        </div>
+
+        <div class="service-tabs">
+            <button class="tab active" data-service="veo3">🎬 VEO 3</button>
+            <button class="tab" data-service="4o-image">🖼️ 4O Image</button>
+            <button class="tab" data-service="midjourney">🎨 Midjourney</button>
+            <button class="tab" data-service="flux">⚡ Flux</button>
+            <button class="tab" data-service="runway">🎥 Runway</button>
+            <button class="tab" data-service="suno">🎵 Suno</button>
+        </div>
+
+        <form id="generateForm">
+            <div class="form-group">
+                <label for="prompt">Prompt:</label>
+                <textarea id="prompt" placeholder="Describe what you want to generate..." required></textarea>
+            </div>
+
+            <!-- VEO3 specific options -->
+            <div class="service-specific active" data-service="veo3">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="veo3AspectRatio">Aspect Ratio:</label>
+                        <select id="veo3AspectRatio">
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="9:16">9:16 (Portrait)</option>
+                            <option value="1:1">1:1 (Square)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="veo3Duration">Duration:</label>
+                        <select id="veo3Duration">
+                            <option value="5">5 seconds</option>
+                            <option value="10">10 seconds</option>
+                        </select>
+                    </div>
+                </div>
+            </div>            <!-- 4O Image specific options -->
+            <div class="service-specific" data-service="4o-image">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="imageSize">Size:</label>
+                        <select id="imageSize">
+                            <option value="1:1">1:1 (Square)</option>
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="9:16">9:16 (Portrait)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageVariants">Variants:</label>
+                        <select id="imageVariants">
+                            <option value="1">1 image</option>
+                            <option value="2">2 images</option>
+                            <option value="3">3 images</option>
+                            <option value="4">4 images</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other services -->
+            <div class="service-specific" data-service="midjourney">
+                <p style="color: #666; font-style: italic;">Midjourney generation with default settings</p>
+            </div>
+            
+            <div class="service-specific" data-service="flux">
+                <p style="color: #666; font-style: italic;">Flux generation with default settings</p>
+            </div>
+            
+            <div class="service-specific" data-service="runway">
+                <p style="color: #666; font-style: italic;">Runway generation with default settings</p>
+            </div>
+            
+            <div class="service-specific" data-service="suno">
+                <p style="color: #666; font-style: italic;">Suno music generation</p>
+            </div>
+
+            <button type="submit" class="generate-btn" id="generateBtn">
+                🚀 Generate Content
+            </button>
+        </form>
+
+        <div id="status" class="status" style="display: none;"></div>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="result" class="result" style="display: none;"></div>
+
+        <div class="history" id="history">
+            <h3>📜 Generation History</h3>
+            <div id="historyItems"></div>
+        </div>
+    </div>    <script>
+        class KEIGenerator {
+            constructor() {
+                this.currentService = 'veo3';
+                this.currentTaskId = null;
+                this.checkInterval = null;
+                this.history = JSON.parse(localStorage.getItem('kei-history') || '[]');
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadHistory();
+                this.loadSavedApiKey();
+            }
+
+            setupEventListeners() {
+                console.log('Setting up event listeners...');
+                
+                // Service tabs
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        console.log('Tab clicked:', e.target.dataset.service);
+                        this.switchService(e.target.dataset.service);
+                    });
+                });
+
+                // Form submission
+                const form = document.getElementById('generateForm');
+                console.log('Form found:', !!form);
+                
+                form.addEventListener('submit', (e) => {
+                    console.log('Form submitted!');
+                    e.preventDefault();
+                    this.generateContent();
+                });
+
+                // Also add click listener to button directly as backup
+                const generateBtn = document.getElementById('generateBtn');
+                console.log('Button found:', !!generateBtn);
+                
+                generateBtn.addEventListener('click', (e) => {
+                    console.log('Generate button clicked directly!');
+                    e.preventDefault();
+                    this.generateContent();
+                });
+
+                // Save API key
+                document.getElementById('apiKey').addEventListener('change', () => {
+                    console.log('API key changed');
+                    this.saveApiKey();
+                });
+            }            switchService(service) {
+                this.currentService = service;
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-service="${service}"]`).classList.add('active');
+
+                // Show/hide service-specific options
+                document.querySelectorAll('.service-specific').forEach(section => {
+                    section.classList.remove('active');
+                });
+                const activeSection = document.querySelector(`.service-specific[data-service="${service}"]`);
+                if (activeSection) {
+                    activeSection.classList.add('active');
+                }
+            }
+
+            async makeApiCall(method, url, body, apiKey) {
+                // Try direct API call first, fallback to proxy if CORS fails
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: body ? JSON.stringify(body) : undefined
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.msg || `API call failed: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                        console.log('CORS error, trying proxy...');
+                        
+                        // Try proxy method (if available)
+                        const proxyUrl = '/api/kei-proxy';
+                        
+                        try {
+                            const proxyResponse = await fetch(proxyUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    method: method,
+                                    url: url,
+                                    body: body,
+                                    authToken: apiKey
+                                })
+                            });                            if (!proxyResponse.ok) {
+                                throw new Error(`Proxy failed: ${proxyResponse.status}`);
+                            }
+
+                            return await proxyResponse.json();
+                        } catch (proxyError) {
+                            throw new Error(`CORS blocked and proxy unavailable. Please deploy with Netlify or use a local server. Original error: ${error.message}`);
+                        }
+                    }
+                    throw error;
+                }
+            }
+
+            async generateContent() {
+                console.log('generateContent() called!');
+                console.log('Current service:', this.currentService);
+                
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const prompt = document.getElementById('prompt').value.trim();
+                
+                console.log('API key length:', apiKey.length);
+                console.log('Prompt:', prompt);
+
+                if (!apiKey) {
+                    console.log('No API key provided');
+                    this.showStatus('Please enter your API key', 'error');
+                    return;
+                }
+
+                if (!prompt) {
+                    console.log('No prompt provided');
+                    this.showStatus('Please enter a prompt', 'error');
+                    return;
+                }
+
+                console.log('Starting generation process...');
+                this.showStatus('Starting generation...', 'loading');
+                this.showProgress();
+                document.getElementById('generateBtn').disabled = true;                try {
+                    console.log(`Starting ${this.currentService} generation with prompt: ${prompt}`);
+                    const taskId = await this.startGeneration(apiKey, prompt);
+                    console.log(`Got task ID: ${taskId}`);
+                    this.currentTaskId = taskId;
+                    this.showStatus(`Task created! ID: ${taskId.substring(0, 8)}...`, 'loading');
+                    this.pollForCompletion(apiKey, taskId);
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    this.showStatus(`Error: ${error.message}`, 'error');
+                    this.hideProgress();
+                    document.getElementById('generateBtn').disabled = false;
+                }
+            }
+
+            async startGeneration(apiKey, prompt) {
+                let url, body;
+                
+                // Use correct endpoints for each service
+                if (this.currentService === 'veo3') {
+                    url = 'https://api.kie.ai/api/v1/veo/generate';
+                    body = {
+                        prompt: prompt,
+                        aspectRatio: document.getElementById('veo3AspectRatio').value,
+                        enableFallback: false,
+                        enableTranslation: true
+                    };
+                } else if (this.currentService === '4o-image') {
+                    url = 'https://api.kie.ai/api/v1/gpt4o-image/generate';
+                    body = {
+                        prompt: prompt,
+                        size: document.getElementById('imageSize').value,
+                        nVariants: parseInt(document.getElementById('imageVariants').value),
+                        enableFallback: false
+                    };
+                } else if (this.currentService === 'midjourney') {
+                    url = 'https://api.kie.ai/api/v1/midjourney/generate';
+                    body = {
+                        prompt: prompt,
+                        enableFallback: false
+                    };
+                } else if (this.currentService === 'flux') {
+                    url = 'https://api.kie.ai/api/v1/flux/generate';
+                    body = {
+                        prompt: prompt,
+                        enableFallback: false
+                    };
+                } else if (this.currentService === 'runway') {
+                    url = 'https://api.kie.ai/api/v1/runway/generate';
+                    body = {
+                        prompt: prompt,
+                        enableFallback: false
+                    };
+                } else if (this.currentService === 'suno') {
+                    url = 'https://api.kie.ai/api/v1/suno/generate';
+                    body = {
+                        prompt: prompt,
+                        enableFallback: false
+                    };
+                } else {
+                    throw new Error(`Unsupported service: ${this.currentService}`);
+                }
+
+                const data = await this.makeApiCall('POST', url, body, apiKey);
+                return data.data.taskId;
+            }            async pollForCompletion(apiKey, taskId) {
+                this.showStatus('Generating content...', 'loading');
+                
+                this.checkInterval = setInterval(async () => {
+                    try {
+                        const result = await this.checkStatus(apiKey, taskId);
+                        
+                        if (result.status === 'SUCCESS' || result.successFlag === 1) {
+                            clearInterval(this.checkInterval);
+                            this.handleSuccess(result);
+                        } else if (result.status === 'GENERATE_FAILED' || result.status === 'CREATE_TASK_FAILED') {
+                            clearInterval(this.checkInterval);
+                            this.showStatus(`Generation failed: ${result.errorMessage || 'Unknown error'}`, 'error');
+                            this.hideProgress();
+                            document.getElementById('generateBtn').disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Error checking status:', error);
+                    }
+                }, 3000);
+            }
+
+            async checkStatus(apiKey, taskId) {
+                let endpoint;
+                
+                // Use correct status endpoints for each service
+                if (this.currentService === 'veo3') {
+                    endpoint = `https://api.kie.ai/api/v1/veo/record-info?taskId=${taskId}`;
+                } else if (this.currentService === '4o-image') {
+                    endpoint = `https://api.kie.ai/api/v1/gpt4o-image/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'midjourney') {
+                    endpoint = `https://api.kie.ai/api/v1/midjourney/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'flux') {
+                    endpoint = `https://api.kie.ai/api/v1/flux/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'runway') {
+                    endpoint = `https://api.kie.ai/api/v1/runway/record-info?taskId=${taskId}`;
+                } else if (this.currentService === 'suno') {
+                    endpoint = `https://api.kie.ai/api/v1/suno/record-info?taskId=${taskId}`;
+                } else {
+                    throw new Error(`Unsupported service: ${this.currentService}`);
+                }
+
+                const data = await this.makeApiCall('GET', endpoint, null, apiKey);
+                
+                if (data.code !== 200) {
+                    throw new Error(data.msg || 'Status check failed');
+                }
+                
+                return data.data;
+            }            handleSuccess(result) {
+                this.showStatus('Generation completed successfully!', 'success');
+                this.hideProgress();
+                document.getElementById('generateBtn').disabled = false;
+
+                const resultUrls = result.response ? result.response.resultUrls : result.resultUrls || [];
+                
+                if (resultUrls && resultUrls.length > 0) {
+                    this.showResult(resultUrls);
+                    this.addToHistory(result);
+                } else {
+                    this.showStatus('Generation completed but no results found', 'error');
+                }
+            }
+
+            showResult(urls) {
+                const resultDiv = document.getElementById('result');
+                const prompt = document.getElementById('prompt').value;
+                
+                let html = `<h3>🎉 Generation Complete!</h3>`;
+                html += `<p><strong>Prompt:</strong> ${prompt}</p>`;
+                html += `<p><strong>Service:</strong> ${this.currentService.toUpperCase()}</p>`;
+                
+                urls.forEach((url, index) => {
+                    html += `<a href="${url}" target="_blank" class="download-btn">📥 Download ${urls.length > 1 ? `#${index + 1}` : ''}</a>`;
+                });
+
+                resultDiv.innerHTML = html;
+                resultDiv.style.display = 'block';
+            }
+
+            addToHistory(result) {
+                const historyItem = {
+                    id: Date.now(),
+                    service: this.currentService,
+                    prompt: document.getElementById('prompt').value,
+                    timestamp: new Date().toLocaleString(),
+                    urls: result.response ? result.response.resultUrls : result.resultUrls || []
+                };
+
+                this.history.unshift(historyItem);
+                this.history = this.history.slice(0, 10); // Keep only last 10
+                localStorage.setItem('kei-history', JSON.stringify(this.history));
+                this.loadHistory();
+            }            loadHistory() {
+                const historyItems = document.getElementById('historyItems');
+                
+                if (this.history.length === 0) {
+                    historyItems.innerHTML = '<p style="color: #666; font-style: italic;">No generations yet</p>';
+                    return;
+                }
+
+                let html = '';
+                this.history.forEach(item => {
+                    html += `
+                        <div class="history-item">
+                            <div>
+                                <strong>${item.service.toUpperCase()}</strong><br>
+                                <small style="color: #666;">${item.prompt.substring(0, 60)}${item.prompt.length > 60 ? '...' : ''}</small><br>
+                                <small style="color: #999;">${item.timestamp}</small>
+                            </div>
+                            <div>
+                                ${item.urls.map((url, index) => 
+                                    `<a href="${url}" target="_blank" class="download-btn" style="font-size: 12px; padding: 6px 12px;">📥 ${index + 1}</a>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                historyItems.innerHTML = html;
+            }
+
+            showStatus(message, type) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = 'block';
+            }
+
+            showProgress() {
+                document.getElementById('progressBar').style.display = 'block';
+                document.getElementById('progressFill').style.width = '100%';
+            }
+
+            hideProgress() {
+                document.getElementById('progressBar').style.display = 'none';
+                document.getElementById('progressFill').style.width = '0%';
+            }
+
+            saveApiKey() {
+                const apiKey = document.getElementById('apiKey').value;
+                localStorage.setItem('kei-api-key', apiKey);
+            }
+
+            loadSavedApiKey() {
+                const savedKey = localStorage.getItem('kei-api-key');
+                if (savedKey) {
+                    document.getElementById('apiKey').value = savedKey;
+                }
+            }        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing KEI Generator...');
+            window.keiGenerator = new KEIGenerator();
+            console.log('KEI Generator initialized');
+        });
+    </script>
+</body>
+</html>
