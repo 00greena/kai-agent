@@ -1,4 +1,7 @@
 {
+  "buildCommand": "echo 'Static build complete'",
+  "outputDirectory": "./",
+  "installCommand": "npm install",
   "functions": {
     "api/kei-proxy.js": {
       "maxDuration": 30
