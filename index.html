@@ -415,7 +415,33 @@
             </div>
             
             <div class="service-specific" data-service="runway">
-                <p style="color: #666; font-style: italic;">Runway generation with default settings</p>
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="runwayQuality">Video Quality:</label>
+                        <select id="runwayQuality">
+                            <option value="horizontal_1080p">1080p Horizontal</option>
+                            <option value="horizontal_720p">720p Horizontal</option>
+                            <option value="vertical_1080p">1080p Vertical</option>
+                            <option value="vertical_720p">720p Vertical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="runwayDuration">Duration:</label>
+                        <select id="runwayDuration">
+                            <option value="5">5 seconds</option>
+                            <option value="10">10 seconds</option>
+                            <option value="15">15 seconds</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="runwayAspectRatio">Aspect Ratio:</label>
+                    <select id="runwayAspectRatio">
+                        <option value="16:9">16:9 (Landscape)</option>
+                        <option value="9:16">9:16 (Portrait)</option>
+                        <option value="1:1">1:1 (Square)</option>
+                    </select>
+                </div>
             </div>
             
             <div class="service-specific" data-service="suno">
@@ -652,6 +678,9 @@
                     url = 'https://api.kie.ai/api/v1/runway/generate';
                     body = {
                         prompt: prompt,
+                        quality: document.getElementById('runwayQuality')?.value || "horizontal_1080p",
+                        aspectRatio: document.getElementById('runwayAspectRatio')?.value || "16:9",
+                        duration: parseInt(document.getElementById('runwayDuration')?.value) || 5,
                         enableFallback: false
                     };
                 } else if (this.currentService === 'suno') {
