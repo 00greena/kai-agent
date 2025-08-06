@@ -667,9 +667,14 @@
                 }
             }            async pollForCompletion(apiKey, taskId) {
                 this.showStatus('Generating content...', 'loading');
+                let pollCount = 0;
+                const maxPolls = 120; // Maximum 6 minutes of polling (120 * 3 seconds)
                 
                 this.checkInterval = setInterval(async () => {
                     try {
+                        pollCount++;
+                        console.log(`Poll attempt ${pollCount}/${maxPolls}`);
+                        
                         const result = await this.checkStatus(apiKey, taskId);
                         
                         // Log the full result to see what we're getting
@@ -715,19 +720,30 @@
                             document.getElementById('generateBtn').disabled = false;
                             
                         } else if (result.successFlag === 0) {
-                            console.log('Still generating... SuccessFlag: 0');
+                            console.log(`Still generating... SuccessFlag: 0 (Poll ${pollCount}/${maxPolls})`);
                             // Update status with more detail if available
                             if (result.completeTime) {
                                 this.showStatus('Finalizing generation...', 'loading');
                             } else {
-                                this.showStatus('Generating content...', 'loading');
+                                this.showStatus(`Generating content... (${Math.floor(pollCount * 3 / 60)}m ${(pollCount * 3) % 60}s)`, 'loading');
                             }
                         } else {
                             console.log('Unknown status... SuccessFlag:', result.successFlag);
                         }
+                        
+                        // Safety timeout to prevent infinite polling
+                        if (pollCount >= maxPolls) {
+                            console.log('Maximum polling attempts reached. Stopping.');
+                            clearInterval(this.checkInterval);
+                            this.showStatus('Generation taking longer than expected. Please check back later.', 'error');
+                            this.hideProgress();
+                            document.getElementById('generateBtn').disabled = false;
+                        }
+                        
                     } catch (error) {
-                        console.error('Error checking status:', error);
+                        console.error('Error checking status (will continue polling):', error);
                         // Don't clear interval on temporary errors, just log them
+                        this.showStatus('Checking status...', 'loading');
                     }
                 }, 3000);
             }
