@@ -624,32 +624,31 @@
                         
                         // Log the full result to see what we're getting
                         console.log('Full status result:', JSON.stringify(result, null, 2));
-                        console.log('Result status:', result.status);
-                        console.log('Result successFlag:', result.successFlag);
+                        console.log('SuccessFlag:', result.successFlag);
+                        console.log('Has resultUrls:', result.response && result.response.resultUrls);
                         
-                        // Check for various completion indicators
-                        if (result.status === 'SUCCESS' || 
-                            result.successFlag === 1 || 
-                            result.status === 'COMPLETED' ||
-                            (result.response && result.response.resultUrls && result.response.resultUrls.length > 0)) {
+                        // Check for completion based on actual API response structure
+                        if (result.successFlag === 1 && 
+                            result.response && 
+                            result.response.resultUrls && 
+                            result.response.resultUrls.length > 0) {
                             
                             console.log('Generation completed! Clearing interval.');
                             clearInterval(this.checkInterval);
                             this.handleSuccess(result);
                             
-                        } else if (result.status === 'GENERATE_FAILED' || 
-                                 result.status === 'CREATE_TASK_FAILED' ||
-                                 result.status === 'FAILED' ||
-                                 result.successFlag === 0) {
-                            
+                        } else if (result.successFlag === 2 || result.successFlag === 3) {
+                            // Based on API docs: 2 = Failed, 3 = Generation Failed
                             console.log('Generation failed! Clearing interval.');
                             clearInterval(this.checkInterval);
                             this.showStatus(`Generation failed: ${result.errorMessage || 'Unknown error'}`, 'error');
                             this.hideProgress();
                             document.getElementById('generateBtn').disabled = false;
                             
+                        } else if (result.successFlag === 0) {
+                            console.log('Still generating... SuccessFlag: 0');
                         } else {
-                            console.log('Still generating... Status:', result.status || 'unknown');
+                            console.log('Unknown status... SuccessFlag:', result.successFlag);
                         }
                     } catch (error) {
                         console.error('Error checking status:', error);
