@@ -417,10 +417,10 @@
             <div class="service-specific" data-service="runway">
                 <div class="grid">
                     <div class="form-group">
-                        <label for="runwayModel">Model & Duration:</label>
-                        <select id="runwayModel">
-                            <option value="runway-duration-5-generate">5 seconds</option>
-                            <option value="runway-duration-10-generate">10 seconds</option>
+                        <label for="runwayDuration">Duration:</label>
+                        <select id="runwayDuration">
+                            <option value="5">5 seconds</option>
+                            <option value="8">8 seconds</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -670,7 +670,7 @@
                     body = {
                         prompt: prompt,
                         aspectRatio: document.getElementById('runwayAspectRatio')?.value || "16:9",
-                        model: document.getElementById('runwayModel')?.value || "runway-duration-5-generate",
+                        duration: parseInt(document.getElementById('runwayDuration')?.value) || 5,
                         waterMark: "kie.ai",
                         expandPrompt: true
                         // imageUrl is optional for text-to-video
